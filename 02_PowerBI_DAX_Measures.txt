@@ -1,0 +1,59 @@
+-- E-commerce Return Rate Reduction Analysis
+-- Table name used below: ecommerce_returns_powerbi_ready
+
+Total Orders =
+DISTINCTCOUNT(ecommerce_returns_powerbi_ready[Order_ID])
+
+Returned Orders =
+CALCULATE(
+    [Total Orders],
+    ecommerce_returns_powerbi_ready[Return_Status] = "Returned"
+)
+
+Return Rate % =
+DIVIDE([Returned Orders], [Total Orders], 0)
+
+Gross Sales =
+SUM(ecommerce_returns_powerbi_ready[Gross_Order_Value])
+
+Total Discount =
+SUM(ecommerce_returns_powerbi_ready[Discount_Applied])
+
+Net Sales =
+SUM(ecommerce_returns_powerbi_ready[Net_Order_Value])
+
+Average Order Value =
+DIVIDE([Net Sales], [Total Orders], 0)
+
+Average Days to Return =
+CALCULATE(
+    AVERAGE(ecommerce_returns_powerbi_ready[Days_to_Return]),
+    ecommerce_returns_powerbi_ready[Return_Status] = "Returned"
+)
+
+Returned Sales =
+CALCULATE(
+    [Net Sales],
+    ecommerce_returns_powerbi_ready[Return_Status] = "Returned"
+)
+
+Non-Returned Sales =
+CALCULATE(
+    [Net Sales],
+    ecommerce_returns_powerbi_ready[Return_Status] = "Not Returned"
+)
+
+Return Rate by Product =
+[Return Rate %]
+
+-- Optional rule-based product risk label.
+-- This is a business-rule label, NOT the logistic-regression probability.
+Risk Level =
+VAR r = [Return Rate %]
+RETURN
+SWITCH(
+    TRUE(),
+    r >= 0.60, "High",
+    r >= 0.40, "Medium",
+    "Low"
+)
